@@ -1,0 +1,65 @@
+#slidedownmenu {
+
+  background-color:#C60;
+  -webkit-padding-start:0px;
+  width:100%;
+  height:90px; /* slider canvas height (was 60) */
+  position:relative;
+  /* top:-30px; /* mystery control */
+  left:0;
+  z-index:1; /* when retracted, the canvas is hidden by SwipeView */
+
+}
+
+#slidedownmenu .handle {
+
+  -webkit-user-select:none;   /* user can't select */
+  position:absolute;
+  z-index:999; /* the handle is never covered by anything */
+  width:100%;
+  height:30px; /* handle height */
+  bottom:-20px; /* connects the top of the handle to the bottom of the canvas (there's some overlap ~5px?) */
+  left:0;
+  border-top:1px solid #532500;
+  border-bottom:1px solid #111;
+  background-color:#c3a57e;
+  background:url("../icons/Metroid_32_0002_Wi-Fi.png") 
+    no-repeat 50% 50%, 
+    -webkit-gradient(linear, 0 0, 0 100%, color-stop(0, #e07b29), color-stop(0.1, #b85300), color-stop(0.8, #793600));
+}
+
+#slidedownmenu ul {
+  display:inherit;   /* was block */
+  width:auto;
+  height:0px;
+  -webkit-padding-start:0px;
+}
+
+#slidedownmenu li {
+  display:block;
+  float:left;
+  margin:5px 10px; /* top and bottom = 5px, left and right = 10px */
+  text-align:center;
+  font-weight:bold;
+  color:#fff;
+  text-shadow:0 1px 1px #000;
+}
+
+#slidedownmenu li img {
+  display:block;
+  margin-bottom:4px;
+}
+
+#moveCameraButton {
+  left:20px;
+  float:left;
+  display: inherit;
+}
+
+#settingsButton {
+  background:no-repeat 75% 50%;
+  position: absolute;
+  right:20px;
+  float: right;
+  display: inherit;
+}

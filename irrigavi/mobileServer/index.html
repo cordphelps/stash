@@ -1,0 +1,1649 @@
+<!DOCTYPE html>
+
+<!--
+/*
+ * irrigavi.js
+ *
+ * Cord Phelps
+ * Copyright 2015, MIT License
+ * http://www.opensource.org/licenses/MIT
+ *
+ * Software distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+*/
+-->
+
+<html>
+<head>
+<meta charset="utf-8">
+<title>irrigavi</title>
+
+<!-- viewport: responsive web design pg. 80 -->
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<!-- height=device-height, (did not see an effect....) -->
+
+<!--[if lt IE 9]>
+	<script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+<![endif]-->
+
+<link rel="stylesheet" href="css/jquery.mobile-1.4.5.min.css" />
+<link rel="stylesheet" href="css/jqplot.min.css" />
+<link rel="stylesheet" href="css/mobileStyle-v5.css" />
+
+<!-- secret sauce to get phonegapBuild to include cordova -->
+<!-- http://stackoverflow.com/questions/20924734/cant-use-navigator-camera-getpicture-on-ios-phonegap-adobe-build -->
+<script src="cordova.js"></script>
+<!-- end secret sauce -->
+
+
+<script src="js/vendor/jquery-1.10.2.min.js"></script>
+<script src="js/irrigavi.js"></script>
+<script src="js/fn.js"></script>
+
+<script src="js/vendor/jqplot.min.js"></script>
+<script src="js/vendor/jqplot.dateAxisRenderer.min.js"></script>
+<script src="js/vendor/jqplot.canvasAxisLabelRenderer.min.js"></script>
+<script src="js/vendor/jqplot.canvasAxisTickRenderer.min.js"></script>
+<script src="js/vendor/jqplot.canvasTextRenderer.min.js"></script>
+<script src="js/vendor/jqplot.canvasOverlay.min.js"></script>
+<!--
+<script src="js/vendor/jqplot.cursor.min.js"></script>
+<script src="js/vendor/jqplot.highlighter.min.js"></script> -->
+
+<script src="js/vendor/jqplot.ohlcRenderer.min.js"></script>
+
+
+<script>
+
+
+
+<!-- //www.gajotres.net/document-onpageinit-vs-document-ready/ -->
+$(document).bind("mobileinit",  function() {
+
+   /* disable auto-initialize */
+  // https://jqmtricks.wordpress.com/2014/12/29/redirect-on-start-up/#more-560
+  // $.mobile.autoInitializePage = false;
+
+  // alert("mobileinit");
+
+  // http://stackoverflow.com/questions/11678541/phonegap-jquery-ajax-fails-support-cors-true
+  $.support.cors = true;
+  $.mobile.allowCrossDomainPages = true;
+  //$.mobile.ajaxEnabled = false;
+
+
+  $.mobile.defaultPageTransition = "fade";
+  // http://stackoverflow.com/questions/7924665/change-the-default-data-theme-from-jquery-mobile
+  // $.mobile.page.prototype.options.contentTheme = "b";
+
+
+  mobileinit = true;
+
+
+  
+});
+
+</script>
+
+<!-- the last script to load -->
+<script src="js/vendor/jquery.mobile-1.4.3.min.js"></script>
+<!-- 
+jqMobile architectural references
+// http://www.gajotres.net/page-events-order-in-jquery-mobile/
+// http://www.gajotres.net/prevent-jquery-multiple-event-triggering/
+// http://www.gajotres.net/solution-to-jquery-mobile-page-content-empty-space-height-problem/
+// 
+-->
+
+</head>
+
+<body>
+
+
+
+<!--      ////////////                                          ////////////      -->
+<!--      ////////////               start                      ////////////      -->
+<!--      ////////////                                          ////////////      -->
+
+
+<div data-role="page" id="start" data-theme="c">
+
+  <div data-role="header" id="startHeader" class="headerClass" > <h1>irrigavi</h1>
+
+  </div>
+  
+  <div id='startContent' class='pageContent' data-role="content" style="padding:1px">
+
+      <div class="pageGrid ui-grid-b"> <!-- using 3 columns to center the button -->
+
+        <div class="ui-block-a" >  </div> <!-- end block -->
+
+        <div class="ui-block-b ui-btn ui-corner-all" style="margin-left:10%;width:80%">  <!-- column 2 -->
+
+          <br> 
+          <input type="button" id='scanBtn' value='find device' >
+
+          <div id="scanSuccessWrapper">
+
+            <div id="observedSensorPackSelectWrap">
+              <label for="observedSensorPack" class="select"></label>
+                <select name="observedSensorPack" id="observedSensorPack" >
+                  <option value="0">'none defined'</option>
+                </select>
+            </div>
+          
+            <input type="button" id='measureBtn' value='get data' >
+
+            <br> 
+            <br> 
+          
+            <input type="button" id='adminBtn' value='admin' >
+
+          </div>  <!-- end scanSuccessWrapper -->
+
+          <div id="scanErrorWrapper">
+
+            <label for="scanErrorText"></label>
+            <textarea name="scanErrorText" id="scanErrorText"></textarea>   
+
+          </div>  <!-- end scanErrorWrapper -->
+
+        </div> <!-- end 80% block -->
+
+        <div class="ui-block-c" >  </div> <!-- end block -->
+
+    </div> <!-- end grid --> 
+
+  </div> <!-- end of content -->
+
+
+
+<!--
+  <div id='startFooter' data-role="footer" class="footerClass" data-position="fixed" data-tap-toggle="false"> 
+
+    <div class="footerGrid ui-grid-a" >
+
+      <div class="ui-block-a" >
+
+      </div>
+      <div class="ui-block-b" >
+        <input type="button" id='logBtn' value='log' >
+      </div>
+
+    </div> 
+
+  </div> 
+   -->
+
+  <script> 
+
+    $("#scanBtn").click(function() {
+
+      // placeholder until the bluetooth scan gets turned on
+
+      $('#observedSensorPack').selectmenu("enable");
+
+    }); // end 
+
+    $('#observedSensorPack').on('vmouseout', function () {
+
+      // it seems cordova triggers 'vmouseout' at the completion of the select
+      // (completion = 'done' for the iOS cylindrical selector gizmo)
+
+
+      irrigavi.selectedSensorPackIndex = $('#observedSensorPack').prop("selectedIndex");
+      irrigavi.selectedSensorPack = $('#observedSensorPack').find(":selected").text();
+
+      getSensorPackDetails();
+      getCropDetails();
+
+      console.log("selectedSensorPack: " + irrigavi.selectedSensorPack);
+
+      $('#measureBtn').button('enable');
+
+    });
+
+
+    $("#measureBtn").click(function() {
+
+      $.mobile.changePage("#measure", { transition: 'slide', reverse: true });
+
+      readSensors();
+
+    }); // end  click
+
+
+    $("#logBtn").click(function() {
+
+      updateLog("#logBtn click()");
+
+      $.mobile.changePage("#debugLog", { transition: 'slide', reverse: true });
+
+    });
+
+    $("#adminBtn").click(function() {
+
+      $.mobile.changePage("#admin", { transition: 'slide', reverse: true });
+
+    })
+
+  </script>
+
+
+</div> <!-- end of start -->
+
+
+
+<!--      ////////////                                          ////////////      -->
+<!--      ////////////               matrix                      ////////////      -->
+<!--      ////////////                                          ////////////      -->
+
+
+<div data-role="page" id="matrix"  data-cache="false" data-theme="c">
+
+  <div data-role="header" data-position="fixed"  data-tap-toggle="false" id="matrixHeader" class="headerClass" > 
+
+    <button data-inline="true" id="matrixBackBtn" data-icon="back" class="ui-corner-all ui-btn-left">back</button>
+
+    <button data-inline="true" id="clearCheckBtn" data-icon="bars" class="ui-corner-all ui-btn-right">clear</button>
+
+  </div>
+  
+<div id='matrixContent' class='pageContent' data-role="content" style="padding:1px">
+
+  <h4>sensor ports</h4>
+  <button data-inline="true" id="showCheckBtn" class="ui-btn ui-corner-all ui-btn-right">show</button>
+
+        <!--      ///////////////////// RADIO ////////////////////////////////////    -->
+        
+  <div class="ui-grid-b" style="margin-left:10%;width:80%"> <!-- using 3 columns to align the radio buttons -->
+
+    <div class="ui-block-a" > <!-- <h3>high</h3>  -->
+
+    <div class="ui-field-contain">
+
+    <fieldset data-role="controlgroup" class="boxes">
+
+    <h4>upper</h4>
+
+    <input type="checkbox" name="radio-choice-0a" id="radio-choice-0a" value="radio-choice-0a" checked="checked">
+    <label for="radio-choice-0a">0</label>
+
+    <input type="checkbox" name="radio-choice-1a" id="radio-choice-1a" value="radio-choice-1a" checked="checked">
+    <label for="radio-choice-1a">1</label>
+ 
+    <input type="checkbox" name="radio-choice-2a" id="radio-choice-2a" value="radio-choice-2a">
+    <label for="radio-choice-2a">2</label>
+ 
+    <input type="checkbox" name="radio-choice-3a" id="radio-choice-3a" value="radio-choice-3a">
+    <label for="radio-choice-3a">3</label>
+ 
+    <input type="checkbox" name="radio-choice-4a" id="radio-choice-4a" value="radio-choice-4a">
+    <label for="radio-choice-4a">4</label>
+
+    <input type="checkbox" name="radio-choice-5a" id="radio-choice-5a" value="radio-choice-5a">
+    <label for="radio-choice-5a">5</label>
+
+    </fieldset>
+
+  </div>
+
+
+</div> <!-- end block -->
+
+<div class="ui-block-b" > <!-- <h3>middle</h3>  -->
+
+<div class="ui-field-contain">
+  <fieldset data-role="controlgroup" class="boxes" >
+
+    <h4>middle</h4>
+
+    <input type="checkbox" name="radio-choice-0b" id="radio-choice-0b" value="radio-choice-0b">
+    <label for="radio-choice-0b">0</label>
+ 
+    <input type="checkbox" name="radio-choice-1b" id="radio-choice-1b" value="radio-choice-1b">
+    <label for="radio-choice-1b">1</label>
+ 
+    <input type="checkbox" name="radio-choice-2b" id="radio-choice-2b" value="radio-choice-2b" checked="checked">
+    <label for="radio-choice-2b">2</label>
+ 
+    <input type="checkbox" name="radio-choice-3b" id="radio-choice-3b" value="radio-choice-3b" checked="checked">
+    <label for="radio-choice-3b">3</label>
+
+    <input type="checkbox" name="radio-choice-4b" id="radio-choice-4b" value="radio-choice-4b">
+    <label for="radio-choice-4b">4</label>
+ 
+    <input type="checkbox" name="radio-choice-5b" id="radio-choice-5b" value="radio-choice-5b">
+    <label for="radio-choice-5b">5</label>
+
+  </fieldset>
+</div>
+
+</div> <!-- end block b -->
+
+<div class="ui-block-c" > <!-- <h3>low</h3>  -->
+
+<div class="ui-field-contain">
+  <fieldset data-role="controlgroup" class="boxes" >
+
+    <h4>lower</h4>
+
+    <input type="checkbox" name="radio-choice-0c" id="radio-choice-0c" value="radio-choice-0c">
+    <label for="radio-choice-0c">0</label>
+ 
+    <input type="checkbox" name="radio-choice-1c" id="radio-choice-1c" value="radio-choice-1c">
+    <label for="radio-choice-1c">1</label>
+ 
+    <input type="checkbox" name="radio-choice-2c" id="radio-choice-2c" value="radio-choice-2c">
+    <label for="radio-choice-2c">2</label>
+ 
+    <input type="checkbox" name="radio-choice-3c" id="radio-choice-3c" value="radio-choice-3c">
+    <label for="radio-choice-3c">3</label>
+
+    <input type="checkbox" name="radio-choice-4c" id="radio-choice-4c" value="radio-choice-4c" checked="checked">
+    <label for="radio-choice-4c">4</label>
+ 
+    <input type="checkbox" name="radio-choice-5c" id="radio-choice-5c" value="radio-choice-5c" checked="checked">
+    <label for="radio-choice-5c">5</label>
+
+  </fieldset>
+</div>
+
+</div> <!-- end block c -->
+
+</div>   <!-- end 3 columns to align the radio buttons -->
+
+<!--      ///////////////////// END RADIO ////////////////////////////////////    -->
+
+
+</div> <!-- end of content -->
+
+
+
+  <script>
+
+
+  </script>
+
+
+</div> <!-- end of matrix -->
+
+
+
+<!--      ////////////                                          ////////////      -->
+<!--      ////////////               measure                    ////////////      -->
+<!--      ////////////                                          ////////////      -->
+
+
+<div data-role="page" id="measure"  data-theme="c">
+
+
+  <div data-role="header" data-position="fixed"  data-tap-toggle="false" id="measureHeader" class="headerClass" > 
+
+    <button data-inline="true" id="measureBackBtn" data-icon="back" class="ui-corner-all ui-btn-left">back</button>
+
+    <button data-inline="true" id="chartOptionsBtn" data-icon="bars" class="ui-corner-all ui-btn-right">options</button>
+
+    <div class="ui-title" ></div>  <!-- http://api.jquerymobile.com/toolbar/  -->
+
+    <div data-role="panel" id="chartPanel" data-position="right" data-display="overlay" data-theme="b">
+    <!-- panel content goes here -->
+            <button data-inline="false" id="readBtn" class="ui-btn ui-corner-all" >read</button>
+            <br>
+            <button data-inline="true" id="measureClearBtn" class="ui-btn ui-corner-all" >clear</button>
+            <br>
+            <button data-inline="true" id="measureSaveBtn" class="ui-btn ui-corner-all" >save</button>
+            <br>
+            <button data-inline="false" id="measureUploadBtn" class="ui-btn ui-corner-all " >upload</button>
+            <br>
+            <br>
+            <input type="text" id='checkDateBtn' value='' >
+            <br>
+
+    </div><!-- /panel -->
+
+  </div>
+  
+  <div id='measureContent' class='pageContent' data-role="content" style="padding:1px">
+
+    <div data-role="popup" id="popupDialog" data-overlay-theme="a" data-theme="a"  class="ui-corner-all">
+      <div data-role="header" data-theme="a" class="ui-corner-top">
+      </div>
+      <div role="main" class="ui-corner-bottom ui-content">
+        <p class="ui-title">save recently collected data?</p>
+
+      <div class="pageGrid ui-grid-b"> <!-- using 3 columns to center the textarea -->
+        <div class="ui-block-a" > 
+          <button data-inline="true" id="popYesBtn" class="ui-btn ui-corner-all" >yes</button>  
+        </div> 
+
+        <div class="ui-block-b" >  
+          <button data-inline="true" id="popNoBtn" class="ui-btn ui-corner-all" >no</button>
+        </div>
+
+        <div class="ui-block-c" > 
+          <button data-inline="true" id="popCancelBtn" class="ui-btn ui-corner-all" >cancel</button>
+        </div>
+
+      </div>
+      </div>
+    </div>
+
+
+
+    <div class="pageGrid ui-grid-b"> <!-- using 3 columns to center the textarea -->
+
+        <div class="ui-block-a" >  <!--  --> </div> 
+
+        <div class="ui-block-b  ui-corner-all" style="margin-left:10%;width:80%">  <!-- column 2 -->
+
+    <br><br>
+
+    <div id="textWrapper" >
+        
+      <label for="measureIncomingRawText"></label>
+      <textarea name="measureIncomingRawText" id="measureIncoming"></textarea>   
+
+    </div>  <!-- end textWrapper -->
+
+
+
+
+    <div id="chartCandleWrapper" style="display:'none';">
+
+      <div id="chart" > </div> 
+
+    </div>  <!-- end candleWrapper -->
+
+    <div id="chartLevel0Wrapper" style="display:'none';">
+
+      <div id="chartLevel0" > </div> 
+
+    </div>  <!-- end chartWrapper -->
+
+    <div id="chartLevel1Wrapper" style="display:'none';"> 
+
+          <div id="chartLevel1" > </div> 
+
+    </div>  <!-- end chartWrapper -->
+
+    <div id="chartLevel2Wrapper" style="display:'none';">
+
+          <div id="chartLevel2" > </div> 
+
+    </div>  <!-- end chartWrapper -->
+
+    <div id="chartLevel3Wrapper" style="display:'none';">
+
+      <div id="chartLevel3" > </div> 
+
+    </div>  <!-- end chartWrapper -->
+
+
+
+  </div> <!-- end block b -->
+  <div class="ui-block-c" >  <!--  --> </div>
+
+</div> <!-- end grid -->
+</div> <!-- end content -->
+
+
+
+
+<!--
+  <div id='measureFooter' data-role="footer" class="footerClass" data-position="fixed" data-fullscreen="true" data-tap-toggle="true">
+
+    <div class="footerGrid ui-grid-d" >
+
+      <div class="ui-block-a" >
+        
+      </div>
+      <div class="ui-block-b" >
+        
+      </div>
+      <div class="ui-block-c" >
+        <button data-inline="true" id="measurePreviousBtn" class="ui-btn ui-corner-all ui-icon-carat-l ui-btn-icon-notext"></button>
+      </div>
+      <div class="ui-block-d" >
+        <button data-inline="true" id="measureNextBtn" class="ui-btn ui-corner-all ui-icon-carat-r ui-btn-icon-notext"></button>
+      </div>
+
+    </div> 
+
+
+  </div> 
+-->
+
+    <script>
+
+    $("#chartOptionsBtn").click(function() {
+
+      $( "#chartPanel" ).panel( "toggle" );
+
+    }); // end  click
+
+    $("#checkDateBtn").keyup(function(e) {
+      // http://stackoverflow.com/questions/3462995/jquery-keydown-keypress-keyup-enterkey-detection
+      // 13 - enter
+      var code = e.which; // recommended to use e.which, it's normalized across browsers
+      if(code==13) {
+        e.preventDefault();
+
+        var string = $("#checkDateBtn").val();
+        //alert("len: " + string.length);
+        var integer = parseInt(string);
+
+        var mr = new  Date(integer);
+        alert(mr.getFullYear() + " / " + mr.getMonth() + " / " + mr.getDate() + "\n" + mr.getHours() + " : " + mr.getMinutes() + " : " + mr.getSeconds());
+      }
+
+
+    }); // end  click
+
+
+    $("#readBtn").click(function() {
+
+      $( "#chartPanel" ).panel( "close" );
+
+      $("#chartCandleWrapper").hide().trigger('updatelayout');
+
+      irrigavi.plotInfo.visibleChart = 0;
+      $("#chartLevel0Wrapper").hide().trigger('updatelayout');
+      $("#chartLevel1Wrapper").hide().trigger('updatelayout');
+      $("#chartLevel2Wrapper").hide().trigger('updatelayout');
+      $("#chartLevel3Wrapper").hide().trigger('updatelayout');
+
+      $("#textWrapper").show().trigger('updatelayout');
+
+      // we know which sensorPack has been selected (irrigavi.selectedSensorPack) before this page appears
+      // (there is no way to interrogate the device to determine its 'identity')
+      // readSensors() collects all of its data and adds it to the irrigavi.sensorData[] array 
+      //
+      // irrigavi.plotInfo{} is also constructed of 'lines' and chart details
+
+      readSensors();  // <-- sets irrigavi.dataIsAvailable, expected to be 'true' 
+
+
+    }); // end  click
+
+
+
+    $("#measureClearBtn").click(function() {
+
+      $( "#chartPanel" ).panel( "close" );
+
+      clearLog('measureIncoming');
+
+      irrigavi.sensorData = [];
+
+      irrigavi.dataIsAvailable = false;
+
+
+    }); // end  click
+
+
+    $("#measureSaveBtn").click(function() {
+
+      $( "#chartPanel" ).panel( "close" );
+
+      irrigavi.plotInfo.visibleChart = 0;
+      $("#chartCandleWrapper").hide().trigger('updatelayout');
+      $("#chartLevel0Wrapper").hide().trigger('updatelayout');      
+      $("#chartLevel1Wrapper").hide().trigger('updatelayout');
+      $("#chartLevel2Wrapper").hide().trigger('updatelayout');
+      $("#chartLevel3Wrapper").hide().trigger('updatelayout');
+
+      $("#textWrapper").show().trigger('updatelayout');
+
+      syncSensorData(irrigavi.selectedSensorPack);
+
+
+    }); // end  click
+
+
+    $("#measureBackBtn").click(function() {
+
+      $( "#chartPanel" ).panel( "close" );  
+
+      if (irrigavi.dataIsAvailable) {
+
+        if (!irrigavi.dataIsSynced) {
+          // http://stackoverflow.com/questions/12945040/jquery-mobile-popup-close-button-how-to-close-without-going-back
+          $("#popupDialog").popup( "option", "history", false );  // don't mess with the URL
+                                                                  // (giving an unintentional page transition)
+          $("#popupDialog").popup( "open" );
+          return;
+        }
+
+        // clear the data cache
+        irrigavi.sensorData = [];
+        clearLog('measureIncoming');
+        irrigavi.dataIsAvailable = false;
+        irrigavi.dataIsSynced = false;
+        // kill plot instances
+        clearPlotInstances();
+        // re-set plotInfo{} variables
+        initPlotInfoObj();
+
+        $.mobile.changePage("#start", { transition: 'slide', reverse: false });
+
+      } else {
+
+        // clear the data cache
+        irrigavi.sensorData = [];
+        clearLog('measureIncoming');
+        irrigavi.dataIsAvailable = false;
+        irrigavi.dataIsSynced = false;
+
+        // kill plot instances
+        clearPlotInstances();
+        // re-set plotInfo{} variables
+        initPlotInfoObj();
+
+        $.mobile.changePage("#start", { transition: 'slide', reverse: false });
+            
+      }
+
+
+    }); // end  click
+
+    $("#popYesBtn").click(function() {
+
+        $("#popupDialog").popup( "close" );
+
+        syncSensorData(irrigavi.selectedSensorPack);
+
+        // clear the data cache
+        irrigavi.sensorData = [];
+        clearLog('measureIncoming');
+        irrigavi.dataIsAvailable = false;
+        irrigavi.dataIsSynced = false;
+
+        // kill plot instances
+        clearPlotInstances();
+        // re-set plotInfo{} variables
+        initPlotInfoObj();
+
+        $.mobile.changePage("#start", { transition: 'slide', reverse: false });
+
+    });
+
+    $("#popNoBtn").click(function() {
+
+        $("#popupDialog").popup( "close" );
+
+        // clear the data cache
+        irrigavi.sensorData = [];
+        clearLog('measureIncoming');
+        irrigavi.dataIsAvailable = false;
+        irrigavi.dataIsSynced = false;
+
+        // kill plot instances
+        clearPlotInstances();
+        // re-set plotInfo{} variables
+        initPlotInfoObj();
+
+        $.mobile.changePage("#start", { transition: 'slide', reverse: false });
+
+    });
+
+    $("#popCancelBtn").click(function() {
+      $("#popupDialog").popup( "close" );
+    });
+
+
+
+
+
+  </script>
+
+
+</div> <!-- end of page -->
+
+
+
+<!--      ////////////                                          ////////////      -->
+<!--      ////////////               debug log                  ////////////      -->
+<!--      ////////////                                          ////////////      -->
+
+
+<div data-role="page" id="debugLog"  data-theme="c">
+
+  <div data-role="header" id="logHeader" class="headerClass" > <h1>debug</h1>
+
+
+
+  </div>
+  
+  <div id='logContent' class='pageContent' data-role="content" style="padding:1px">
+
+    <div class="pageGrid ui-grid-b"> <!-- using 3 columns to center the button -->
+
+      <div class="ui-block-a" >  <!--  -->
+      </div> <!-- end block -->
+
+      <div class="ui-block-b ui-btn ui-corner-all" >  <!-- column 2 -->
+      </div> <!-- end block -->
+
+      <div class="ui-block-c" >  <!--  -->
+      </div> <!-- end block -->
+
+    </div> <!-- end grid --> 
+
+    <!-- //////////////////////// center the textArea      //////////////////////// -->
+
+    <div class="pageGrid ui-grid-b"> <!-- using 3 columns to center the button -->
+
+      <div class="ui-block-a" >  <!--  -->
+      </div> <!-- end block -->
+
+      <div class="ui-block-b  ui-corner-all" style="margin-left:10%;width:80%">  <!-- column 2 -->
+        
+        <label for="logTextArea"></label>
+        <textarea name="textarea" id="logTextArea"></textarea>
+
+      </div> <!-- end block -->
+
+      <div class="ui-block-c" >  <!--  -->
+      </div> <!-- end block -->
+
+    </div> <!-- end grid --> 
+
+     <!-- //////////////////////// center the save button //////////////////////// -->
+
+    <div class="pageGrid ui-grid-b"> <!-- using 3 columns to center the button -->
+
+      <div class="ui-block-a" >  <!--  -->
+      </div> <!-- end block -->
+
+      <div class="ui-block-b  ui-corner-all" >  <!-- column 2 -->
+      </div> <!-- end block -->
+
+      <div class="ui-block-c" >  <!--  -->
+      </div> <!-- end block -->
+
+    </div> <!-- end grid --> 
+
+    
+
+
+  </div> <!-- end of content -->
+
+  <div id='logFooter' data-role="footer" class="footerClass" data-position="fixed" data-tap-toggle="false">
+
+    <div class="footerGrid ui-grid-a" >
+
+      <div class="ui-block-a" >
+        <button data-inline="true" id="logBackBtn" data-icon="back" class="ui-btn ui-corner-all ui-icon-back ui-btn-icon-notext"></button>
+      </div>
+      <div class="ui-block-b" >
+        <button data-inline="true" id="logClearBtn" class="ui-btn ui-corner-all ui-icon-grid ui-btn-icon-notext"></button>
+      </div>
+
+    </div> <!-- end grid --> 
+
+
+  </div> <!-- end footer -->
+
+    <script>
+
+
+    $("#logBackBtn").click(function() {
+
+      $.mobile.changePage("#start", { transition: 'slide', reverse: false });
+
+    }); // end  click
+
+    $("#logClearBtn").click(function() {
+
+      clearLog();
+
+    }); // end  click
+
+  </script>
+
+
+</div> <!-- end of debug log -->
+
+
+<!--      ////////////                                          ////////////      -->
+<!--      ////////////               options                    ////////////      -->
+<!--      ////////////                                          ////////////      -->
+
+
+<div data-role="page" id="options"  data-theme="c">
+
+  <div data-role="header" data-position="fixed" data-tap-toggle="false" id="optionsHeader" class="headerClass" > 
+
+    <button data-inline="true" id="optionsBackBtn" data-icon="back" class="ui-corner-all ui-btn-left">back</button>
+
+    <div class="ui-title" ></div>  <!-- http://api.jquerymobile.com/toolbar/  -->
+
+
+  </div>
+  
+  <div id='optionsContent' class='pageContent' data-role="content" style="padding:1px">
+
+    <br>
+
+      <div class="ui-grid-b" >  <!-- 3 column grid -->
+
+        <div class="ui-block-a" ></div>
+
+        <div class="ui-block-b ui-btn ui-corner-all" style="margin-left:1%;width:30%">
+
+
+          <label for="select-time" class="select">set chart increment</label>
+            <select name="select-time" id="select-time">
+              <!-- note: these values map to the keys of irrigavi.plotInfo.ctime.milliHash{}            -->
+              <!-- also: these options match .ctime.incrementArray[] which helps adjust this select     -->
+              <option value="months">months</option>
+              <option value="weeks">weeks</option>
+              <option value="days">days</option>
+              <option value="hours">hours</option>
+              <option value="minutes">minutes</option>
+              <option value="minutes">seconds</option>
+          </select>
+
+              <br>
+              <br>         
+
+
+                <label for="chartTimespan">chart timespan (months)</label>
+                <input type="text" name="chartTimespan" id="chartTimespan" value=""  />
+
+
+              <br>
+              <br>
+              <br> 
+
+                <label for="sampleData">generate sample data</label>
+                <select id="sampleData" data-role="flipswitch" data-theme="c">
+                  <option value="0">off</option>
+                  <option value="1">on</option>
+                </select>
+
+        </div> 
+
+        <div class="ui-block-c" ></div>
+
+    </div> 
+
+  </div> <!-- end of content -->
+
+
+
+    <script>
+
+      $('#select-time').on('vmouseout', function () {
+
+      // it seems cordova triggers 'vmouseout' at the completion of the select
+      // (completion = 'done' for the iOS cylindrical selector gizmo)
+
+      // adjust the select and get the selected time increment
+      // irrigavi.plotInfo.ctime.cIncrement is a string (months, weeks, days, ...)
+      $('select-time').prop("selectedIndex");
+      irrigavi.plotInfo.ctime.cIncrement = $('#select-time').find(":selected").text();
+      
+
+      // based on the selected time increment, change time variables used by jqplot
+
+      // http://encosia.com/using-jquery-1-6-to-find-an-array-of-an-objects-keys/
+      // these are the 'keys' ; months, weeks, days, hours, .....
+      var array = $.map(irrigavi.plotInfo.ctime.milliHash, 
+
+          function(value, key) {
+
+            if (key == irrigavi.plotInfo.ctime.cIncrement) {
+
+              irrigavi.plotInfo.ctime.cMultiplier = irrigavi.plotInfo.ctime.milliHash[key][0];
+              irrigavi.plotInfo.ctime.cMaxMultiplier = irrigavi.plotInfo.ctime.milliHash[key][1];
+              irrigavi.plotInfo.ctime.cIncrementMilliseconds = irrigavi.plotInfo.ctime.milliHash[key][2];
+              irrigavi.plotInfo.ctime.xAxisFormatstring = irrigavi.plotInfo.ctime.milliHash[key][3];
+
+            }
+            //return key;
+            return;
+          });
+
+      // change the label for the chart timespan textEdit
+      // http://stackoverflow.com/questions/7280296/changing-the-label-of-a-jquery-mobile-checkbox
+      $("label[for='chartTimespan'] ").text("chart timespan (" + irrigavi.plotInfo.ctime.cIncrement + ")").trigger('updatelayout');
+      $('#chartTimespan').val(irrigavi.plotInfo.ctime.cMultiplier).textinput("refresh");
+    
+
+    });
+
+
+    $("#optionsBackBtn").click(function() {
+
+      $.mobile.changePage("#admin", { transition: 'slide', reverse: false });
+
+    }); // end  click
+
+
+    $("#options1Btn").click(function() {
+
+      clearLog();
+
+    }); // end  click
+
+  </script>
+
+
+</div> <!-- end of options  -->
+
+
+
+<!--      ////////////                                          ////////////      -->
+<!--      ////////////               admin                      ////////////      -->
+<!--      ////////////                                          ////////////      -->
+
+
+<div data-role="page" id="admin"  data-theme="c">
+
+  <div data-role="header" data-position="fixed"  data-tap-toggle="false" id="adminHeader" class="headerClass" > 
+
+  <button data-inline="true" id="adminBackBtn" data-icon="back" class="ui-corner-all ui-btn-left">back</button>
+
+  <div class="ui-title" ></div>  <!-- http://api.jquerymobile.com/toolbar/  -->
+
+<!--
+	<div id='adminHeader' data-role="header" class="headerClass" data-position="fixed" data-tap-toggle="false" > <h1>admin</h1>
+
+    <div class="headerGrid ui-grid-d" >  
+
+      <div class="ui-block-a" >
+      </div>
+      <div class="ui-block-b" >  
+      </div>
+      <div class="ui-block-c" >
+      </div>
+      <div class="ui-block-d" >
+      </div>
+      <div class="ui-block-e" >
+      </div>
+
+    </div>
+-->
+	</div>
+
+	
+	<div id='adminContent' class='pageContent' data-role="content" style="padding:1px">
+
+      <div class="pageGrid ui-grid-b"> <!-- using 3 columns to center the button -->
+
+        <div class="ui-block-a" >  <!--  -->
+        </div> <!-- end block -->
+
+        <div class="ui-block-b ui-btn ui-corner-all" style="margin-left:10%;width:80%">  <!-- column 2 -->
+          
+          <input type="button" id='domainBtn' value='domains' >
+          <input type="button" id='cropBtn' value='crops' >
+          <input type="button" id='sensorPackBtn' value='sensorPacks' >
+          <br> 
+          <input type="button" id='optionsBtn' value='options' >
+
+        </div> <!-- end block -->
+
+        <div class="ui-block-c" >  <!--  -->
+        </div> <!-- end block -->
+
+    </div> <!-- end grid --> 
+
+  </div> <!-- end of content -->
+
+
+
+<!--
+  <div id='adminFooter' data-role="footer" class="footerClass" data-position="fixed" data-tap-toggle="false"> 
+
+    <div class="footerGrid ui-grid-a" >
+
+      <div class="ui-block-a" >
+        <button data-inline="true" id="adminBackBtn" data-icon="back" class="ui-btn ui-corner-all ui-icon-back ui-btn-icon-notext"></button>
+      </div>
+      <div class="ui-block-b" >
+        <button data-inline="true" id="adminDebugBtn" class="ui-btn ui-corner-all ui-icon-grid ui-btn-icon-notext"></button>
+      </div>
+
+    </div> 
+
+  </div> 
+
+   -->
+
+    <script>
+
+    $("#sensorPackBtn").click(function() {
+
+      $.mobile.changePage("#sensorPack", { transition: 'slide', reverse: true });
+
+    }); // end backbtn click
+
+
+    $("#domainBtn").click(function() {
+
+      $.mobile.changePage("#domain", { transition: 'slide', reverse: true });
+
+    });
+
+    $("#cropBtn").click(function() {
+
+      $.mobile.changePage("#crop", { transition: 'slide', reverse: true });
+
+    })
+
+    $("#optionsBtn").click(function() {
+
+      $.mobile.changePage("#options", { transition: 'slide', reverse: true });
+
+    })
+
+    $("#adminBackBtn").click(function() {
+
+      $.mobile.changePage("#start", { transition: 'slide', reverse: false });
+
+    })
+
+
+
+  </script>
+
+
+</div> <!-- end of admin -->
+
+
+
+
+<!--      ////////////                                          ////////////      -->
+<!--      ////////////               sensor pack                ////////////      -->
+<!--      ////////////                                          ////////////      -->
+
+
+<div data-role="page" id="sensorPack" data-cache="false" data-theme="c">
+
+  <div data-role="header" data-position="fixed"  data-tap-toggle="false" id="sensorPackHeader" class="headerClass" > 
+
+  <button data-inline="true" id="sensorPackBackBtn" data-icon="back" class="ui-corner-all ui-btn-left">back</button>
+
+  <div class="ui-title" ></div>  <!-- http://api.jquerymobile.com/toolbar/  -->
+
+<!--
+  <div data-role="header" id="sensorPackHeader" data-theme="c" class="headerClass"> <h1>sensorPacks</h1>
+
+    <div class="headerGrid ui-grid-d" >  
+
+      <div class="ui-block-a" >
+      </div>
+      <div class="ui-block-b" >  
+      </div>
+      <div class="ui-block-c" >
+      </div>
+      <div class="ui-block-d" >
+      </div>
+      <div class="ui-block-e" >
+      </div>
+
+    </div>
+  -->
+
+  </div> <!-- end header --> 
+  
+  <div data-role="content" id="sensorPackContent" class='pageContent'>
+
+    <div class="pageGrid ui-grid-b"> <!-- PRIMARY using 3 columns to center the button -->
+
+      <div class="ui-block-a" >  <!--  -->
+      </div> <!-- end block -->
+
+      <div class="ui-block-b ui-btn ui-corner-all" style="margin-left:10%;width:80%">  <!-- column 2 -->
+
+        <div id="sensorPackSelectWrap">
+        <label for="sensorPack-select-choice-min" class="select"></label>
+          <select name="sensorPack-select-choice-min" id="select-sensorPack" >
+            <option value="0">long road</option>
+            <option value="1">48" pipe</option>
+          </select>
+        </div>
+
+        <div id="sensorPackEditWrap">    <!-- hidden textEdit for new sensorPack -->
+          <div class="ui-field-contain"> <!-- gets side-by-side effect -->
+              <label for="dom">domain name:</label>
+              <input type="text" name="dom" id="dom" value="" data-mini="true">
+          </div>
+        </div>  
+
+        <div class="ui-grid-a" > <!-- grid for domain and crop selects (side-by-side) -->
+
+          <div class="ui-block-a" >
+          
+            <label for="sensorPack-select-domain" class="select"></label>
+            <select name="sensorPack-select-domain" id="select-sensorPack-domain" >
+              <option value="0">carp</option>
+              <option value="1">santa ynez</option>
+            </select>
+
+          </div>
+
+          <div class="ui-block-b" >
+
+            <label for="sensorPack-select-crop" class="select"></label>
+            <select name="sensorPack-select-crop" id="select-sensorPack-crop" >
+              <option value="0">avocado</option>
+              <option value="1">lemons</option>
+            </select>
+
+          </div>
+
+        </div> <!-- end of grid for domain and crop selects -->
+
+<!--  button to display the registered sensor pattern -->
+
+<!--
+<button data-inline="true" id="probesBtn" class="ui-btn ui-corner-all ui-icon-grid ">[0,1,2] [3] [4]</button>
+-->
+
+<input type="button" id='probesBtn' value='[0,1,2] [3] [4]' >
+
+<!--
+<button class="ui-button" id='probesBtn'  >this</button>
+-->
+
+<br> 
+<br> 
+
+        <div class="ui-grid-b" > <!-- INTERIOR using 3 columns to align the NEW / SAVE / CANCEL buttons -->
+
+          <div class="ui-block-a" > </div> <!-- end block -->
+
+          <div class="ui-block-b" style="margin-left:10%;width:80%"> 
+
+            <div id="newsensorPackBtnWrap">
+              <input type="button" id='newsensorPackBtn' value='new' >
+            </div>
+
+            <div id="editsensorPackBtnWrap">
+              <input type="button" id='editsensorPackBtn' value='edit' >
+            </div>
+            <div id="savesensorPackBtnWrap">
+              <input type="button" id='savesensorPackBtn' value='save' >
+            </div>
+            <div id="deletesensorPackBtnWrap" >
+              <input type="button" id='deletesensorPackBtn' value='delete' >
+            </div>
+            <div id="cancelsensorPackBtnWrap" >
+              <input type="button" id='cancelsensorPackBtn' value='cancel' >
+            </div>
+
+          </div> <!-- end block -->
+
+          <div class="ui-block-c"  > </div> <!-- end block -->
+
+      </div>  <!-- end INTERIOR grid  for the center buttons -->
+      
+        <br> 
+
+
+      </div> <!-- end column 2 of the base block of the page -->
+
+
+
+     <div class="ui-block-c" >  <!--  --> </div> <!-- end block -->
+
+  </div> <!-- end PRIMARY 3 column grid --> 
+
+
+  </div> <!-- end page content -->
+
+<!--
+  <div data-role="footer" id="sensorPackFooter" class="footerClass" data-theme="c" data-position="fixed" data-tap-toggle="false"> 
+
+    <div class="footerGrid ui-grid-b" >
+
+      <div class="ui-block-a" >
+        <button data-inline="true" id="sensorPackBackBtn" data-icon="back" class="ui-btn ui-corner-all ui-icon-back ui-btn-icon-notext"></button>
+      </div>
+      <div class="ui-block-b" >
+        <button data-inline="true" id="sensorPackDebugBtn" class="ui-btn ui-corner-all ui-icon-eye ui-btn-icon-notext"></button>
+      </div>
+      <div class="ui-block-c" >
+        <button data-inline="true" id="sensorPackMatrixBtn" class="ui-btn ui-corner-all ui-icon-grid ui-btn-icon-notext"></button>
+      </div>
+
+    </div> 
+
+  </div> 
+   --> 
+  
+
+  <script>
+
+// TODO is that redundant?
+// hanadled by managePageWithSelect()  ?
+
+  $('#select-sensorPack-crop').on('vmousedown', function () {  
+
+      console.log("crop index: " + $('#select-sensorPack-crop').prop("selectedIndex"));
+      // irrigavi.domainIndexSelected = $('#select-' + pageName).prop("selectedIndex");
+      //irrigavi[pageName + 'IndexSelected'] = $('#select-' + pageName).prop("selectedIndex");
+      irrigavi.cropData.indexSelected = $('#select-sensorPack-crop').prop("selectedIndex"); // new
+
+      // gajotres: http://stackoverflow.com/questions/15031993/jquery-mobile-getting-the-value-of-a-selectmenu
+      // irrigavi.domainLabelSelected = $("#select-domain").find(":selected").text();
+      // irrigavi[pageName + 'LabelSelected'] = $('#select-' + pageName).find(":selected").text();
+      irrigavi.cropData.labelSelected = $('#select-sensorPack-crop').find(":selected").text();
+
+      console.log(irrigavi.cropData.labelSelected);
+
+    });
+
+  $("#sensorPackMatrixBtn").click(function() {
+
+    $.mobile.changePage("#matrix", { transition: 'slide', reverse: false });
+
+    });
+
+  $("#probesBtn").click(function() {
+
+    alert("??");
+
+    $.mobile.changePage("#matrix", { transition: 'slide', reverse: false });
+
+    });
+
+
+  </script>
+
+</div> <!-- end page pageInfo -->
+
+
+
+<!--      ////////////                                          ////////////      -->
+<!--      ////////////               domain                     ////////////      -->
+<!--      ////////////                                          ////////////      -->
+
+
+<div data-role="page" id="domain" data-cache="false" data-theme="c">
+
+  <div data-role="header" data-position="fixed" data-tap-toggle="false" id="domainHeader" class="headerClass" > 
+
+  <button data-inline="true" id="domainBackBtn" data-icon="back" class="ui-corner-all ui-btn-left">back</button>
+
+  <div class="ui-title" ></div>  <!-- http://api.jquerymobile.com/toolbar/  -->
+
+<!--
+  <div data-role="header" id="domainHeader" data-theme="c" class="headerClass"> <h1>domains</h1>
+
+    <div class="headerGrid ui-grid-d" >  
+
+      <div class="ui-block-a" >
+      </div>
+      <div class="ui-block-b" >  
+      </div>
+      <div class="ui-block-c" >
+        
+      </div>
+      <div class="ui-block-d" >
+      </div>
+      <div class="ui-block-e" >
+      </div>
+
+    </div>
+  -->
+
+  </div> <!-- end header --> 
+  
+  <div data-role="content" id="domainContent" class='pageContent'>
+
+    <div class="pageGrid ui-grid-b"> <!-- using 3 columns to center the button -->
+
+      <div class="ui-block-a"  style="width:9%">  <!--  -->
+        <br> 
+      </div> <!-- end block -->
+
+      <div class="ui-block-b  ui-corner-all" style="width:80%">  <!-- column 2 margin-left:10% -->
+
+        <div id="domainSelectWrap">
+        <label for="domain-select-choice-min" class="select"></label>
+          <select name="domain-select-choice-min" id="select-domain" data-mini="false">
+            <option value="standard">carp</option>
+            <option value="rush">santa ynez</option>
+          </select>
+        </div>
+
+          <div id="domainEditWrap">
+            <div class="ui-field-contain"> <!-- gets side-by-side effect -->
+              <label for="basic">domain name:</label>
+              <input type="text" name="name" id="basic" value="" data-mini="false">
+            </div>
+          </div>  
+
+<br> 
+<br> 
+
+        <div class="ui-grid-b" > <!-- using 3 columns to align the buttons -->
+          <div class="ui-block-a" > 
+          </div> <!-- end block -->
+
+          <div class="ui-block-b" style="margin-left:10%;width:80%"> 
+
+            <div id="newDomainBtnWrap">
+              <input type="button" id='newDomainBtn' value='new' >
+            </div>
+
+            <div id="editDomainBtnWrap">
+              <input type="button" id='editDomainBtn' value='edit' >
+            </div>
+            <div id="saveDomainBtnWrap">
+              <input type="button" id='saveDomainBtn' value='save' >
+            </div>
+
+            <div id="deleteDomainBtnWrap" >
+              <input type="button" id='deleteDomainBtn' value='delete' >
+            </div>
+            <div id="cancelDomainBtnWrap" >
+              <input type="button" id='cancelDomainBtn' value='cancel' >
+            </div>
+
+          </div> <!-- end block -->
+
+          <div class="ui-block-c" > 
+          </div> <!-- end block -->
+
+        </div>  <!-- end grid -->
+      
+        <br> 
+        
+
+        </div> <!-- end block b -->
+
+
+        <div class="ui-block-c ui-btn ui-corner-all"   style="width:10%">  <!--  --> 
+       
+
+        </div> <!-- end block -->
+
+
+    </div> <!-- end grid --> 
+
+
+  </div> <!-- end page content -->
+
+<!--
+  <div data-role="footer" id="domainFooter" class="footerClass" data-theme="c" data-position="fixed" data-tap-toggle="false"> 
+
+    <div class="footerGrid ui-grid-b" >
+
+      <div class="ui-block-a" >
+        <button data-inline="true" id="domainBackBtn" data-icon="back" class="ui-btn ui-corner-all ui-icon-back ui-btn-icon-notext"></button>
+      </div>
+      <div class="ui-block-b" >
+        <button data-inline="true" id="domainDebugBtn" class="ui-btn ui-corner-all ui-icon-grid ui-btn-icon-notext"></button>
+      </div>
+      <div class="ui-block-c" >
+          <button data-inline="true" id="domainLogBtn" class="ui-btn ui-corner-all ui-icon-eye ui-btn-icon-notext"></button>
+      </div>      
+
+    </div> 
+
+  </div> 
+   --> 
+  
+
+  <script>
+
+
+    $("#domainDefaultBtn").click(function() {
+
+
+
+    });
+
+
+
+  </script>
+
+</div> <!-- end page pageInfo -->
+
+
+
+<!--      ////////////                                          ////////////      -->
+<!--      ////////////               crop                       ////////////      -->
+<!--      ////////////                                          ////////////      -->
+
+
+<div data-role="page" id="crop" data-cache="false" data-theme="c">
+
+  <div data-role="header" data-position="fixed" data-tap-toggle="false" id="cropHeader" class="headerClass" > 
+
+  <button data-inline="true" id="cropBackBtn" data-icon="back" class="ui-corner-all ui-btn-left">back</button>
+
+  <div class="ui-title" ></div>  <!-- http://api.jquerymobile.com/toolbar/  -->
+
+<!--
+  <div data-role="header" id="cropHeader" data-theme="c" class="headerClass"> <h1>crops</h1>
+
+    <div class="headerGrid ui-grid-d" >  
+
+      <div class="ui-block-a" >
+      </div>
+      <div class="ui-block-b" >  
+      </div>
+      <div class="ui-block-c" >
+      </div>
+      <div class="ui-block-d" >
+      </div>
+      <div class="ui-block-e" >
+      </div>
+
+    </div>
+
+-->
+  </div>  
+  
+  <div data-role="content" id="cropContent" class='pageContent'>
+
+    <div class="pageGrid ui-grid-b"> <!-- using 3 columns to center the button -->
+
+      <div class="ui-block-a" style="width:10%" >  <!--  -->
+      </div> <!-- end block -->
+
+      <div class="ui-block-b ui-btn ui-corner-all" style="width:80%">  <!-- column 2 -->
+
+        <div id="cropSelectWrap">
+        <label for="crop-select-choice-min" class="select"></label>
+          <select name="crop-select-choice-min" id="select-crop" >
+            <option value="standard">avocado</option>
+            <option value="rush">coffee</option>
+          </select>
+        </div>
+
+          <div id="cropEditWrap">
+            <div class="ui-field-contain"> <!-- gets side-by-side effect -->
+              <label for="cropName">crop name:</label>
+              <input type="text" name="cropName" id="cropName" value="" >
+            </div>
+          </div>  
+
+<br> 
+<br> 
+
+        <div class="ui-grid-b" > <!-- using 3 columns to align the buttons -->
+
+          <div class="ui-block-a" > 
+          </div> <!-- end block -->
+
+          <div class="ui-block-b" style="margin-left:10%;width:80%"> 
+
+            <div id="newCropBtnWrap">
+              <input type="button" id='newCropBtn' value='new' >
+            </div>
+
+            <div id="editCropBtnWrap">
+              <input type="button" id='editCropBtn' value='edit' >
+            </div>
+            <div id="saveCropBtnWrap">
+              <input type="button" id='saveCropBtn' value='save' >
+            </div>
+            <div id="deleteCropBtnWrap" >
+              <input type="button" id='deleteCropBtn' value='delete' >
+            </div>
+            <div id="cancelCropBtnWrap" >
+              <input type="button" id='cancelCropBtn' value='cancel' >
+            </div>
+
+          </div> <!-- end block -->
+
+          <div class="ui-block-c"  > 
+          </div> <!-- end block -->
+
+        </div>  <!-- end grid -->
+      
+        <br> 
+        
+
+
+        </div> <!-- end block b (column 2) -->
+
+        <div class="ui-block-c" >  <!--  -->
+        </div> <!-- end block -->
+
+    </div> <!-- end grid --> 
+
+
+  </div> <!-- end page content -->
+
+<!--
+
+  <div data-role="footer" id="cropFooter" class="footerClass" data-theme="c" data-position="fixed" data-tap-toggle="false"> 
+
+    <div class="footerGrid ui-grid-b" >
+
+      <div class="ui-block-a" >
+        <button data-inline="true" id="cropBackBtn" data-icon="back" class="ui-btn ui-corner-all ui-icon-back ui-btn-icon-notext"></button>
+      </div>
+      <div class="ui-block-b" >
+        <button data-inline="true" id="cropDebugBtn" class="ui-btn ui-corner-all ui-icon-grid ui-btn-icon-notext"></button>
+      </div>
+      <div class="ui-block-c" >
+        <button data-inline="true" id="cropLogBtn" class="ui-btn ui-corner-all ui-icon-eye ui-btn-icon-notext"></button>
+      </div>
+
+    </div> 
+
+  </div> 
+   --> 
+  
+
+  <script>
+
+
+  </script>
+
+</div> <!-- end page Crop -->
+
+
+<!-- end of pages -->
+
+
+<!--      ////////////                                          ////////////      -->
+<!--      ////////////               (end)                      ////////////      -->
+<!--      ////////////                                          ////////////      -->
+
+  <script>
+
+  if ( /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ) {
+    // implement phonegap deviceready
+    // http://docs.phonegap.com/en/3.0.0/cordova_events_events.md.html
+
+    // can't get this placed properly.....  no luck in mobileinit
+    //document.addEventListener("deviceready", initialize, false);
+  }
+  else {
+    // 
+    // initialize();
+  }
+
+  initialize();
+
+  console.log("irrigavi.domainData: " + typeof(irrigavi.domainData));
+
+  managePageWithSelect('domain', 'Domain', irrigavi.domainData, 'admin');
+  //irrigavi.domainData.domainIndexSelected = 0;
+  //irrigavi.domainData.domainLabelSelected = "any domain";
+  managePageWithSelect('crop', 'Crop', irrigavi.cropData, 'admin');
+  //irrigavi.cropData.cropIndexSelected = 0;
+  //irrigavi.cropData.cropLabelSelected = "anything";
+  managePageWithSelect('sensorPack', 'sensorPack', irrigavi.sensorPackData, 'admin');
+
+  $("#matrix").on("pagebeforeshow", function( event ) {
+
+
+    $('#radio-choice-1c').click(function(e) {
+
+      // http://stackoverflow.com/questions/1227286/get-class-list-for-element-with-jquery
+      //var classList = $('#radio-choice-1c').attr('class').split(/\s+/);
+      //console.log("classList: " + classList);
+
+      //console.log("classList: " + $(e.currentTarget.id).attr('class'));
+      console.log("classList: " + $('#radio-choice-1c').attr('class'));
+      console.log("object: " + JSON.stringify(e));
+
+    });
+
+
+
+    $('.boxes').find('[type="checkbox"]').on('click', function( event ){ 
+
+      // http://stackoverflow.com/questions/7643274/jquery-get-element-id-when-click-on-page-using-this-does-not-work
+      //var id = event.currentTarget.id;
+
+      var id = $(this).val();
+      // var id = $(this).id;
+
+      console.log("cluck: " + id );
+
+      manageCheckboxes(id);
+
+    });
+
+    $('#clearCheckBtn').click(function() {
+      clearCheckboxes();
+    });
+
+
+    $('#showCheckBtn').click(function() {
+      readCheckboxes();
+    });
+
+    $("#matrixBackBtn").click(function() {
+      $.mobile.changePage("#sensorPack", { transition: 'slide', reverse: true });
+    }); // end backbtn click
+
+
+  });
+
+  $("#matrix").on("pagebeforehide", function( event ) {
+
+    
+
+  });
+
+
+
+
+  </script>
+
+
+
+</body>
+
+</html>
+
+
+
+

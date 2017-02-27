@@ -1,0 +1,93 @@
+<!DOCTYPE HTML>
+<html>
+
+
+<head>
+<meta name="viewport" content="initial-scale=1.0, user-scalable=no, width=device-width" />
+<title>PhoneGap simple</title>
+
+<link rel="stylesheet" href="assets/css/jquery.mobile-1.1.0.min.css" />
+<link rel="stylesheet" href="assets/css/swipestyle-no-nav.css"/>
+<link rel="stylesheet" href="assets/css/slideinmenu.css"/>
+<link rel="stylesheet" href="assets/css/custom-no-padding.css"/>
+ 
+<script src="phonegap.js" type="text/javascript" charset="utf-8"></script>
+<!-- this file must be referenced here, but -->
+<!-- it is not actually in the local repository -->
+
+</head>
+
+<body>
+
+<section id="page1" data-role="page">
+
+<div class="content" data-role="content">
+
+<div id="wrapper"></div>
+
+
+<div id="slidedownmenu">
+	<ul>
+		<li><img 	id="moveCameraButton" 
+					src="assets/icons/Metroid_48_0046_Camera.png" 
+					alt="" 
+					display="inherit"
+					/></li>
+		<li><img 	id="settingsButton" 
+					src="assets/icons/Metroid_48_0052_Settings.png" 
+					alt=""
+					display="inherit" 
+					/></li>
+	</ul>
+
+	<div class="handle" display="inherit"></div>
+
+  <div id="map_canvas" display="inherit"></div>
+
+</div>
+
+
+<div id="noNetwork" display="none">
+<img 	id="noNetworkButton" 
+					src="assets/icons/Metroid_48_0002_Wi-Fi.png" 
+					alt="" 
+					display="inherit"
+					/>
+</div>
+
+
+</div>
+
+
+</section>
+
+
+
+
+<script text="text/javascript" charset="utf-8" src="https://maps.googleapis.com/maps/api/js?sensor=true"></script>
+<script text="text/javascript" charset="utf-8" src="assets/jquery/jquery-1.7.2.min.js"></script>
+<script type="text/javascript" charset="utf-8" src="assets/jquery/jquery.ui.map.min.js"> </script>
+<script type="text/javascript" charset="utf-8" src="assets/jquery/json2.js"> </script>
+<script type="text/javascript" charset="utf-8" src="assets/jquery/swipeview.js"> </script>
+<script type="text/javascript" charset="utf-8" src="assets/jquery/slideinmenu.js"> </script>
+<!--
+<script type="text/javascript" charset="utf-8" src="assets/jquery/iscroll.js"> </script>
+-->
+<script type="text/javascript" charset="utf-8" src="assets/js/common.js"> </script>
+<!-- jqM needs to be loaded last per 
+http://jquerymobile.com/demos/1.0a4.1/#docs/api/globalconfig.html -->
+<script text="text/javascript" charset="utf-8" src="assets/jquery/jquery.mobile-1.1.0.min.js"> </script>
+
+<script text="text/javascript" charset="utf-8">
+
+$(document).ready(function() {
+                   my_init();
+});
+
+
+</script>
+
+
+
+</body>
+</html>

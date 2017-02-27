@@ -1,0 +1,8 @@
+User-agent: *
+Disallow: /css/
+Disallow: /js/
+Disallow: /font-awesome/
+Disallow: /img/
+Disallow: /bootstrap/
+Disallow: /app/
+Disallow: /cordova.js

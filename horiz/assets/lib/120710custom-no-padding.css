@@ -1,0 +1,53 @@
+.hidden {
+	display: none;
+}
+
+.ui-mobile, .ui-mobile .ui-page, .ui-mobile [data-role="page"],
+.ui-mobile [data-role="dialog"], .ui-page, .ui-mobile .ui-page-active {
+      overflow: hidden;
+      -webkit-backface-visibility: hidden;
+}
+
+.ui-header {
+    position:fixed;
+    z-index:10;
+    top:0;
+    width:100%;
+    padding: 13px 0;
+    height: 15px;
+}
+
+.ui-content {
+    overflow: auto;
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    padding: 0px;
+    padding-top: 0px;
+}
+
+.ui-footer {
+    position:fixed;
+    z-index:10;
+   bottom:0;
+   width:100%;
+}
+
+
+
+p {
+	padding:1px;
+	margin:0;
+	background:#111;
+	font-size:1.4em;
+}
+
+
+#map_canvas {
+            height: 300px;
+	    min-width:320px;
+}
+
+

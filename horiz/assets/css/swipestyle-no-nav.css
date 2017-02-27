@@ -1,0 +1,74 @@
+html, body { height:100%; }
+body {
+	padding:0;
+	margin:0;
+	background:#fff;
+	-webkit-user-select:none;
+    -webkit-text-size-adjust:none;
+	color:#333;
+	font-family:helvetica;
+	font-size:12px;
+	text-align:center;
+}
+
+/*
+h1 {
+	font-size:2em;
+	padding:20px 0;
+	margin:0;
+}
+*/
+
+#wrapper {
+	width:100%;
+	min-width:320px;
+	height:150px;
+	background:#ddd;
+	border-top:1px solid #111;
+	border-bottom:1px solid #111;
+	position:relative; /* z-index only works if 'position' is defined */
+	z-index:2;
+}
+
+
+#swipeview-slider > div {
+	position:relative;
+	display:-webkit-box;
+	-webkit-box-orient:vertical;
+	-webkit-box-pack:center;
+	-webkit-box-align:center;
+	overflow:hidden;
+}
+
+#swipeview-slider span {
+	-webkit-box-sizing:border-box;
+	display:block;
+	text-align:center;
+	font-size:1.4em;
+	padding:0px 20px; /* top/bottom are 0; left/right are 20 */
+}
+
+#map_canvas {
+    height: 300px;
+	min-width:320px;
+	top:20px;         /* position the top of the map with the bottom of the handle */
+	position:relative; /* z-index only works if 'position' is defined */
+	z-index:2; /* same level as the #wrapper  */
+	display:inherit;
+}
+
+p {
+	padding:2px;
+	margin:0;
+	background:#111;
+	font-size:1.4em;
+	position:relative; /* z-index only works if 'position' is defined */
+	z-index:999;
+}
+
+.hidden {
+	display: none;
+}
+
+
+

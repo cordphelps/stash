@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<widget xmlns		= "http://www.w3.org/ns/widgets"
+	xmlns:gap	= "http://phonegap.com/ns/1.0"
+	id		= "com.rcp.horiz"
+	version 	= "1.0.0">
+
+	<name>horiz</name>
+
+	<description>
+		A template for horiz
+	</description>
+
+	<author href="http://phelps0490.github.com"
+		email="phelps0490@gmail.com">
+		Cord Phelps
+	</author>
+
+	<icon src="icon.png" gap:role="default" />
+
+	<feature name="http://api.phonegap.com/1.0/geolocation"/>
+	<feature name="http://api.phonegap.com/1.0/network"/>
+
+	<preference name="orientation" value="default" />
+	<preference name="phonegap-version" value="1.8.1" />
+	
+
+</widget>

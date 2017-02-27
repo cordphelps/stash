@@ -1,0 +1,18 @@
+{
+  "name": "appengine-restify",
+  "description": "An example of running Restify.js on Google App Engine.",
+  "version": "0.0.1",
+  "private": true,
+  "license": "Apache Version 2.0",
+  "author": "Google Inc.",
+  "engines": {
+    "node": "~4.2"
+  },
+  "scripts": {
+    "start": "node server.js",
+    "deploy": "gcloud preview app deploy"
+  },
+  "dependencies": {
+    "restify": "^4.0.0"
+  }
+}

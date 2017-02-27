@@ -1,0 +1,11 @@
+application: long-wave-89413
+version: 2
+runtime: go
+api_version: go1
+# https://developers.google.com/appengine/docs/python/config/appconfig#Python_app_yaml_Static_cache_expiration
+# static file handlers only
+default_expiration: "10s"
+
+handlers:
+- url: /.*
+  script: _go_app
